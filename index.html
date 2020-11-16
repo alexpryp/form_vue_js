@@ -14,53 +14,93 @@
       <form action="">
         <div class="form-group">
           <label for="firstname">First name</label>
-          <input type="text" id="firstname" class="form-control" placeholder="First name">
+          <input type="text" id="firstname" class="form-control" placeholder="lirst name" v-model="formData.firstname">
         </div>
         <div class="form-group">
           <label for="lastname">Last name</label>
-          <input type="text" id="lastname" class="form-control" placeholder="Last name">
+          <input type="text" id="lastname" class="form-control" placeholder="last name" v-model="formData.lastname">
         </div>
         <div class="form-group">
           <label for="url">Blog</label>
-          <input type="text" id="url" class="form-control" placeholder="url">
+          <input type="text" id="url" class="form-control" placeholder="url" v-model="formData.url">
         </div>
         <div class="form-group">
           <label for="badge">Personal badge (html)</label>
-          <textarea id="badge" class="form-control" cols="10" rows="3"></textarea>
+          <textarea id="badge" class="form-control" cols="10" rows="3" v-model="formData.badge"></textarea>
         </div>
         <div class="form-group">
           <label for="book">Favourite book ISBN (like 0201558025)</label>
-          <input type="text" id="book" class="form-control" placeholder="book">
+          <input type="text" id="book" class="form-control" placeholder="book" v-model="formData.bookisbn">
         </div>
         <div class="form-group">
           <label for="techno">Technologies</label>
-          <input type="text" id="techno" class="form-control" placeholder="techno">
+          <input type="text" id="techno" class="form-control" placeholder="techno" v-model="formData.technologies">
         </div>
 
-        <button type="submit" class="btn btn-default">Submit</button>
+        <button type="submit" class="btn btn-default" v-on:click.prevent="submit">Submit</button>
       </form>
     </div>
 
-    <div class="well">
-      <h3>Dear !</h3>
-      <p></p>
-      <p>My blog is <a href="">here</a></p>
+    <div class="well" v-if="showDetails">
+      <h3>Dear {{fullname}}!</h3>
+      <p v-html="formData.badge"></p>
+      <p>My blog is <a v-bind:href="formData.url">here</a></p>
       <p>
-        <h4>My favourite book is ''</h4>
-        <img src="">
+        <h4>My favourite book is '{{book.title}}'</h4>
+        <img v-bind:src="book.url">
       </p>
       <p>
         My technologies
         <ul>
-          <li></li>
+          <li v-for="tech in mytechnologies">{{tech}}</li>
         </ul>
       </p>
     </div>
-    <div class="well">Please submit the form</div>
+    <div class="well" v-else>Please submit the form</div>
   </div>
 
   <script>
-    
+    new Vue({
+      el: "#app",
+      data: {
+        formData: {
+          firstname: "",
+          lastname: "",
+          url: "http://www.",
+          badge: "",
+          bookisbn: "",
+          technologies: "",
+        },
+        showDetails: false,
+        book: {
+          title: "",
+          url: "",
+        },
+      },
+      methods:{
+        submit: function() {
+          this.showDetails = true;
+        },
+      },
+      computed: {
+        fullname: function() {
+          return this.formData.firstname + " " + this.formData.lastname;
+        },
+        mytechnologies: function() {
+          return this.formData.technologies.split(',');
+        },
+      },
+      watch: {
+        "formData.bookisbn": function() {
+          var url = "http://openlibrary.org/api/books?bibkeys=ISBN:" + this.formData.bookisbn + "&format=json&jscmd=data";
+          var inst = this;
+          $.getJSON(url, function(data){
+            inst.book.title = data["ISBN:" + inst.formData.bookisbn].title;
+            inst.book.url = data["ISBN:" + inst.formData.bookisbn].cover.large;
+          });
+        },
+      },
+    });
   </script>
 </body>
 </html>
